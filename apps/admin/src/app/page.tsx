@@ -19,32 +19,57 @@ export default function Home() {
     pending: 0
   });
 
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/reports?limit=5', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
-      setReports(data.items || []);
-      
-      // Calculate simple stats from items for now
-      // In production, we'd have a specific stats endpoint
-      const items = data.items || [];
-      setStats({
-        resolved: items.filter((r: any) => r.status === 'RESOLVED').length,
-        inProgress: items.filter((r: any) => r.status === 'IN_PROGRESS').length,
-        pending: items.filter((r: any) => r.status === 'PENDING').length
-      });
-    } catch (error) {
-      console.error('Failed to fetch dashboard data', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
+    const storedUser = localStorage.getItem('user');
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    const isCitizen = user?.role === 'CITIZEN';
+
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        // If citizen, we might want different stats, but for now let's use global or filter
+        const response = await fetch('http://localhost:3000/reports', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        const items = data.items || [];
+        
+        // If citizen, filter stats for their own reports
+        const filteredItems = isCitizen 
+          ? items.filter((r: any) => r.citizenId === user.id)
+          : items;
+
+        setStats({
+          resolved: filteredItems.filter((r: any) => r.status === 'RESOLVED').length,
+          inProgress: filteredItems.filter((r: any) => r.status === 'IN_PROGRESS').length,
+          pending: filteredItems.filter((r: any) => r.status === 'PENDING').length,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const fetchReports = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const url = isCitizen 
+          ? `http://localhost:3000/reports?citizenId=${user.id}&limit=5`
+          : 'http://localhost:3000/reports?limit=5';
+          
+        const response = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        setReports(data.items || []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+    fetchReports();
   }, []);
 
   const statItems = [

@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 export default function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
   const [report, setReport] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
@@ -139,45 +140,47 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-              <h3 className="font-bold text-gray-900 mb-4">Manajemen Status</h3>
-              <div className="space-y-3">
-                {[
-                  { id: 'VERIFIED', label: 'Verifikasi', sub: 'Tandai sudah dicek', icon: CheckCircle2, color: 'blue' },
-                  { id: 'IN_PROGRESS', label: 'Sedang Diproses', sub: 'Petugas di lapangan', icon: Clock, color: 'orange' },
-                  { id: 'RESOLVED', label: 'Selesai', sub: 'Masalah diperbaiki', icon: CheckCircle2, color: 'green' },
-                ].map((s) => (
-                  <button 
-                    key={s.id}
-                    onClick={() => setSelectedStatus(s.id)}
-                    className={clsx(
-                      'w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between',
-                      selectedStatus === s.id 
-                        ? `border-${s.color}-500 bg-${s.color}-50 ring-1 ring-${s.color}-500` 
-                        : 'border-gray-100'
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={clsx('p-2 rounded-lg', selectedStatus === s.id ? `bg-${s.color}-100 text-${s.color}-600` : 'bg-gray-100 text-gray-400')}>
-                        <s.icon size={18} />
+            {!isCitizen && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <h3 className="font-bold text-gray-900 mb-4">Manajemen Status</h3>
+                <div className="space-y-3">
+                  {[
+                    { id: 'VERIFIED', label: 'Verifikasi', sub: 'Tandai sudah dicek', icon: CheckCircle2, color: 'blue' },
+                    { id: 'IN_PROGRESS', label: 'Sedang Diproses', sub: 'Petugas di lapangan', icon: Clock, color: 'orange' },
+                    { id: 'RESOLVED', label: 'Selesai', sub: 'Masalah diperbaiki', icon: CheckCircle2, color: 'green' },
+                  ].map((s) => (
+                    <button 
+                      key={s.id}
+                      onClick={() => setSelectedStatus(s.id)}
+                      className={clsx(
+                        'w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between',
+                        selectedStatus === s.id 
+                          ? `border-${s.color}-500 bg-${s.color}-50 ring-1 ring-${s.color}-500` 
+                          : 'border-gray-100'
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={clsx('p-2 rounded-lg', selectedStatus === s.id ? `bg-${s.color}-100 text-${s.color}-600` : 'bg-gray-100 text-gray-400')}>
+                          <s.icon size={18} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">{s.label}</p>
+                          <p className="text-xs text-gray-500">{s.sub}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">{s.label}</p>
-                        <p className="text-xs text-gray-500">{s.sub}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+                    </button>
+                  ))}
+                </div>
 
-              <Button 
-                className="w-full mt-6 py-4" 
-                onClick={handleUpdateStatus}
-                disabled={updating || selectedStatus === report.status}
-              >
-                {updating ? <Loader2 className="animate-spin" size={20} /> : 'Simpan Perubahan'}
-              </Button>
-            </div>
+                <Button 
+                  className="w-full mt-6 py-4" 
+                  onClick={handleUpdateStatus}
+                  disabled={updating || selectedStatus === report.status}
+                >
+                  {updating ? <Loader2 className="animate-spin" size={20} /> : 'Simpan Perubahan'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
