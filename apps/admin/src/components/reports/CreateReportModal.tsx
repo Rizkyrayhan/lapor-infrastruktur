@@ -13,11 +13,22 @@ interface CreateReportModalProps {
 export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
   const [category, setCategory] = useState('Jalanan');
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,30 +36,34 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
     setError('');
 
     const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
+    formData.append('category', category);
+    formData.append('location', location);
+    if (image) {
+      formData.append('image', image);
+    }
     
     try {
-      // For simplicity, we'll send a dummy report if there's no actual file upload implemented here yet
-      // In a real app, we would use FormData for the image
       const response = await fetch('http://localhost:3000/reports', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          title,
-          description,
-          category,
-          location: 'Kecamatan Pusat', // Placeholder
-        }),
+        body: formData,
       });
 
       if (!response.ok) throw new Error('Gagal mengirim laporan');
 
       onSuccess();
       onClose();
+      // Reset state
       setTitle('');
       setDescription('');
+      setLocation('');
+      setImage(null);
+      setImagePreview(null);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -66,7 +81,7 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
           {error && (
             <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
               {error}
@@ -84,19 +99,31 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Kategori</label>
-            <select 
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black appearance-none"
-            >
-              <option>Jalanan</option>
-              <option>Penerangan</option>
-              <option>Drainase</option>
-              <option>Sampah</option>
-              <option>Lainnya</option>
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Kategori</label>
+              <select 
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black appearance-none bg-white"
+              >
+                <option>Jalanan</option>
+                <option>Penerangan</option>
+                <option>Drainase</option>
+                <option>Sampah</option>
+                <option>Lainnya</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Lokasi (Alamat)</label>
+              <input 
+                required
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Nama jalan / wilayah"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black"
+              />
+            </div>
           </div>
 
           <div>
@@ -106,21 +133,44 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ceritakan detail masalah yang Anda temukan..."
-              rows={4}
+              rows={3}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center text-gray-400 gap-2 cursor-pointer hover:border-primary-300 hover:text-primary-500 transition-all">
-              <Camera size={24} />
-              <span className="text-xs font-medium">Unggah Foto</span>
-            </div>
-            <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center text-gray-400 gap-2 cursor-pointer hover:border-primary-300 hover:text-primary-500 transition-all">
-              <MapPin size={24} />
-              <span className="text-xs font-medium">Titik Lokasi</span>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Unggah Foto Infrastruktur</label>
+            <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center text-gray-400 gap-2 cursor-pointer hover:border-primary-300 hover:text-primary-500 transition-all overflow-hidden min-h-[120px]">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+              ) : (
+                <>
+                  <Camera size={24} />
+                  <span className="text-xs font-medium">Klik untuk pilih foto</span>
+                </>
+              )}
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={handleFileChange}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+              />
             </div>
           </div>
+
+          <div className="pt-4 flex gap-3">
+            <Button variant="outline" type="button" className="flex-1 py-3" onClick={onClose}>
+              Batal
+            </Button>
+            <Button className="flex-1 py-3" type="submit" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin" size={20} /> : 'Kirim Laporan'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
           <div className="pt-4 flex gap-3">
             <Button variant="outline" type="button" className="flex-1 py-3" onClick={onClose}>

@@ -1,7 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import 'dotenv/config';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  // @ts-ignore - for prisma+postgres protocol
+  accelerateUrl: process.env.DATABASE_URL,
+} as any);
 
 async function main() {
   const hashedPassword = await bcrypt.hash('password123', 10);
