@@ -14,11 +14,30 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
   const [category, setCategory] = useState('Jalanan');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude);
+          setLongitude(position.coords.longitude);
+          setLocation(`Koordinat: ${position.coords.latitude}, ${position.coords.longitude}`);
+        },
+        (err) => {
+          setError('Gagal mengambil lokasi. Pastikan GPS aktif.');
+        }
+      );
+    } else {
+      setError('Browser Anda tidak mendukung Geolocation.');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -41,6 +60,8 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
     formData.append('description', description);
     formData.append('category', category);
     formData.append('location', location);
+    if (latitude) formData.append('latitude', latitude.toString());
+    if (longitude) formData.append('longitude', longitude.toString());
     if (image) {
       formData.append('image', image);
     }
@@ -116,13 +137,23 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Lokasi (Alamat)</label>
-              <input 
-                required
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="Nama jalan / wilayah"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black"
-              />
+              <div className="flex gap-2">
+                <input 
+                  required
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Nama jalan / wilayah"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black"
+                />
+                <button 
+                  type="button"
+                  onClick={handleGetLocation}
+                  title="Gunakan Lokasi GPS"
+                  className="px-4 py-3 bg-primary-100 text-primary-900 rounded-xl hover:bg-primary-200 transition-all flex items-center justify-center shrink-0"
+                >
+                  <MapPin size={20} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -157,20 +188,6 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
               />
             </div>
           </div>
-
-          <div className="pt-4 flex gap-3">
-            <Button variant="outline" type="button" className="flex-1 py-3" onClick={onClose}>
-              Batal
-            </Button>
-            <Button className="flex-1 py-3" type="submit" disabled={loading}>
-              {loading ? <Loader2 className="animate-spin" size={20} /> : 'Kirim Laporan'}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
           <div className="pt-4 flex gap-3">
             <Button variant="outline" type="button" className="flex-1 py-3" onClick={onClose}>

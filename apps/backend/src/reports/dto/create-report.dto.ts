@@ -14,6 +14,10 @@ export class CreateReportDto {
   @IsNotEmpty()
   category: string;
 
+  @IsString()
+  @IsNotEmpty()
+  location: string;
+
   @IsOptional()
   @IsNumber()
   @Type(() => Number)

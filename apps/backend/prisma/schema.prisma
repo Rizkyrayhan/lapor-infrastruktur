@@ -38,6 +38,7 @@ model Report {
   title       String
   description String
   category    String
+  location    String
   imageUrl    String?
   latitude    Float?
   longitude   Float?
