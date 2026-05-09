@@ -10,26 +10,74 @@ import {
   Tag, 
   CheckCircle2, 
   Clock, 
-  AlertTriangle 
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
+import { useRouter } from 'next/navigation';
 
 export default function ReportDetailPage({ params }: { params: { id: string } }) {
-  const [status, setStatus] = useState<'Verified' | 'In Progress' | 'Resolved'>('Verified');
+  const [report, setReport] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const router = useRouter();
 
-  const report = {
-    id: params.id,
-    title: 'Lubang Dalam di Jl. Sudirman',
-    category: 'Jalanan',
-    description: 'Sebuah lubang besar terbentuk di lajur kanan, menyebabkan kendaraan menghindar secara berbahaya. Tampaknya semakin membesar setelah hujan turun baru-baru ini.',
-    location: 'Jl. Jenderal Sudirman No. 12, Jakarta Pusat',
-    date: '24 Oktober 2024',
-    citizen: 'Budi Santoso',
-    citizenId: '19842A',
-    imageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=1200&auto=format&fit=crop',
+  const fetchReport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/reports/${params.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Gagal mengambil detail laporan');
+      const data = await response.json();
+      setReport(data);
+      setSelectedStatus(data.status);
+    } catch (error) {
+      console.error(error);
+      router.push('/reports');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchReport();
+  }, [params.id]);
+
+  const handleUpdateStatus = async () => {
+    setUpdating(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/reports/${params.id}/status`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: selectedStatus }),
+      });
+
+      if (!response.ok) throw new Error('Gagal memperbarui status');
+      
+      await fetchReport(); // Refresh data
+      alert('Status berhasil diperbarui');
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="py-20 text-center text-gray-400">Memuat detail laporan...</div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -43,7 +91,11 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-              <img src={report.imageUrl} alt={report.title} className="w-full aspect-video object-cover" />
+              <img 
+                src={report.imageUrl ? `http://localhost:3000${report.imageUrl}` : 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=1200&auto=format&fit=crop'} 
+                alt={report.title} 
+                className="w-full aspect-video object-cover" 
+              />
               <div className="p-8 space-y-6">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">{report.title}</h1>
@@ -54,7 +106,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar size={16} />
-                      {report.date}
+                      {new Date(report.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin size={16} />
@@ -69,27 +121,6 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
                 </div>
               </div>
             </div>
-
-            {/* Activity Log Placeholder */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-              <h3 className="font-bold text-gray-900 mb-6">Log Aktivitas</h3>
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="w-2 h-2 rounded-full bg-green-500 mt-2" />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Laporan Diverifikasi</p>
-                    <p className="text-xs text-gray-400">25 Okt 2024 • 10:30 WIB</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Petugas Ditugaskan</p>
-                    <p className="text-xs text-gray-400">24 Okt 2024 • 14:15 WIB</p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Sidebar Actions */}
@@ -97,79 +128,53 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
               <h3 className="font-bold text-gray-900 mb-4">Informasi Pelapor</h3>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-900">
-                  <User size={24} />
+                <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center text-primary-900 font-bold">
+                  {report.citizen?.name?.[0] || 'A'}
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900">{report.citizen}</p>
-                  <p className="text-xs text-gray-500">ID: {report.citizenId}</p>
+                  <p className="font-bold text-gray-900">{report.citizen?.name || 'Anonim'}</p>
+                  <p className="text-xs text-gray-500">ID: {report.citizenId.slice(0, 8)}...</p>
                 </div>
               </div>
-              <Button variant="outline" className="w-full mt-6">
-                Hubungi Pelapor
-              </Button>
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
               <h3 className="font-bold text-gray-900 mb-4">Manajemen Status</h3>
               <div className="space-y-3">
-                <button 
-                  onClick={() => setStatus('Verified')}
-                  className={clsx(
-                    'w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between',
-                    status === 'Verified' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-100'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
-                      <CheckCircle2 size={18} />
+                {[
+                  { id: 'VERIFIED', label: 'Verifikasi', sub: 'Tandai sudah dicek', icon: CheckCircle2, color: 'blue' },
+                  { id: 'IN_PROGRESS', label: 'Sedang Diproses', sub: 'Petugas di lapangan', icon: Clock, color: 'orange' },
+                  { id: 'RESOLVED', label: 'Selesai', sub: 'Masalah diperbaiki', icon: CheckCircle2, color: 'green' },
+                ].map((s) => (
+                  <button 
+                    key={s.id}
+                    onClick={() => setSelectedStatus(s.id)}
+                    className={clsx(
+                      'w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between',
+                      selectedStatus === s.id 
+                        ? `border-${s.color}-500 bg-${s.color}-50 ring-1 ring-${s.color}-500` 
+                        : 'border-gray-100'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={clsx('p-2 rounded-lg', selectedStatus === s.id ? `bg-${s.color}-100 text-${s.color}-600` : 'bg-gray-100 text-gray-400')}>
+                        <s.icon size={18} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">{s.label}</p>
+                        <p className="text-xs text-gray-500">{s.sub}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Verifikasi</p>
-                      <p className="text-xs text-gray-500">Tandai sudah dicek</p>
-                    </div>
-                  </div>
-                </button>
-
-                <button 
-                  onClick={() => setStatus('In Progress')}
-                  className={clsx(
-                    'w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between',
-                    status === 'In Progress' ? 'border-orange-500 bg-orange-50 ring-1 ring-orange-500' : 'border-gray-100'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-100 rounded-lg text-orange-600">
-                      <Clock size={18} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Sedang Diproses</p>
-                      <p className="text-xs text-gray-500">Petugas di lapangan</p>
-                    </div>
-                  </div>
-                </button>
-
-                <button 
-                  onClick={() => setStatus('Resolved')}
-                  className={clsx(
-                    'w-full p-4 rounded-xl border text-left transition-all flex items-center justify-between',
-                    status === 'Resolved' ? 'border-green-500 bg-green-50 ring-1 ring-green-500' : 'border-gray-100'
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-lg text-green-600">
-                      <CheckCircle2 size={18} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Selesai</p>
-                      <p className="text-xs text-gray-500">Masalah diperbaiki</p>
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                ))}
               </div>
 
-              <Button className="w-full mt-6 py-4">
-                Simpan Perubahan
+              <Button 
+                className="w-full mt-6 py-4" 
+                onClick={handleUpdateStatus}
+                disabled={updating || selectedStatus === report.status}
+              >
+                {updating ? <Loader2 className="animate-spin" size={20} /> : 'Simpan Perubahan'}
               </Button>
             </div>
           </div>

@@ -1,7 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -20,6 +22,21 @@ const menuItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/login');
+  };
 
   return (
     <aside className="w-64 bg-[#F8FAFC] border-r border-gray-200 flex flex-col h-screen sticky top-0">
@@ -51,19 +68,18 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center gap-3 p-2">
-          <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-            <img 
-              src="https://ui-avatars.com/api/?name=Budi+Santoso&background=random" 
-              alt="Profile" 
-              className="w-full h-full object-cover"
-            />
+          <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-900 font-bold">
+            {user?.name?.[0] || 'W'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">Budi Santoso</p>
-            <p className="text-xs text-gray-500 truncate">ID Warga: 19842A</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{user?.name || 'Warga'}</p>
+            <p className="text-xs text-gray-500 truncate">ID: {user?.id?.slice(0, 8) || '...'}</p>
           </div>
         </div>
-        <button className="flex items-center gap-3 w-full px-4 py-2 mt-4 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-3 w-full px-4 py-2 mt-4 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all"
+        >
           <LogOut size={18} />
           Keluar
         </button>

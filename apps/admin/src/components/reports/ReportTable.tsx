@@ -3,31 +3,30 @@
 import { Eye, MoreVertical } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { clsx } from 'clsx';
+import Link from 'next/link';
 
 interface Report {
   id: string;
   title: string;
   category: string;
-  status: 'Pending' | 'Verified' | 'In Progress' | 'Resolved';
-  date: string;
-  citizen: string;
+  status: string;
+  createdAt: string;
+  citizen?: { name: string };
 }
 
-const reports: Report[] = [
-  { id: '1', title: 'Lubang Dalam di Jl. Sudirman', category: 'Jalanan', status: 'In Progress', date: '24 Okt 2024', citizen: 'Budi Santoso' },
-  { id: '2', title: 'Lampu Jalan Rusak', category: 'Penerangan', status: 'Resolved', date: '15 Okt 2024', citizen: 'Budi Santoso' },
-  { id: '3', title: 'Drainase Tersumbat', category: 'Drainase', status: 'Verified', date: '10 Okt 2024', citizen: 'Ani Wijaya' },
-  { id: '4', title: 'Jembatan Retak', category: 'Jembatan', status: 'Pending', date: '05 Okt 2024', citizen: 'Joko Susilo' },
-];
+interface ReportTableProps {
+  reports: Report[];
+  onRefresh?: () => void;
+}
 
-export function ReportTable() {
-  const statusColors = {
-    'Pending': 'bg-gray-100 text-gray-600',
-    'Verified': 'bg-blue-100 text-blue-600',
-    'In Progress': 'bg-orange-100 text-orange-600',
-    'Resolved': 'bg-green-100 text-green-600',
-  };
+const statusMap: Record<string, { label: string, color: string }> = {
+  'PENDING': { label: 'Pending', color: 'bg-gray-100 text-gray-600' },
+  'VERIFIED': { label: 'Verified', color: 'bg-blue-100 text-blue-600' },
+  'IN_PROGRESS': { label: 'Proses', color: 'bg-orange-100 text-orange-600' },
+  'RESOLVED': { label: 'Selesai', color: 'bg-green-100 text-green-600' },
+};
 
+export function ReportTable({ reports }: ReportTableProps) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
@@ -51,17 +50,21 @@ export function ReportTable() {
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">{report.category}</td>
                 <td className="px-6 py-4">
-                  <span className={clsx('px-3 py-1 rounded-full text-[10px] font-bold uppercase', statusColors[report.status])}>
-                    {report.status}
+                  <span className={clsx('px-3 py-1 rounded-full text-[10px] font-bold uppercase', statusMap[report.status]?.color)}>
+                    {statusMap[report.status]?.label || report.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{report.date}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{report.citizen}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">
+                  {new Date(report.createdAt).toLocaleDateString('id-ID')}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">{report.citizen?.name || 'Anonim'}</td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" className="p-2">
-                      <Eye size={16} />
-                    </Button>
+                    <Link href={`/reports/${report.id}`}>
+                      <Button variant="ghost" size="sm" className="p-2">
+                        <Eye size={16} />
+                      </Button>
+                    </Link>
                     <Button variant="ghost" size="sm" className="p-2">
                       <MoreVertical size={16} />
                     </Button>
@@ -73,7 +76,7 @@ export function ReportTable() {
         </table>
       </div>
       <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-        <p>Menampilkan 4 dari 128 laporan</p>
+        <p>Menampilkan {reports.length} laporan</p>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled>Sebelumnya</Button>
           <Button variant="outline" size="sm">Selanjutnya</Button>

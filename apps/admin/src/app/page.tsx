@@ -1,63 +1,100 @@
+'use client';
+
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ReportCard } from '@/components/dashboard/ReportCard';
-import { CheckCircle2, ClipboardList, AlertTriangle } from 'lucide-react';
-
-const mockStats = [
-  {
-    label: 'Masalah berhasil diperbaiki',
-    value: 12,
-    description: 'Masalah berhasil diperbaiki',
-    icon: CheckCircle2,
-    variant: 'success' as const,
-    badgeLabel: 'Selesai',
-  },
-  {
-    label: 'Sedang ditangani',
-    value: 3,
-    description: 'Sedang ditangani',
-    icon: ClipboardList,
-    variant: 'warning' as const,
-    badgeLabel: 'Sedang Diproses',
-  },
-  {
-    label: 'Perlu info tambahan',
-    value: 1,
-    description: 'Perlu info tambahan',
-    icon: AlertTriangle,
-    variant: 'danger' as const,
-    badgeLabel: 'Butuh Tindakan',
-  },
-];
-
-const mockReports = [
-  {
-    title: 'Lubang Dalam di Jl. Sudirman',
-    location: 'Kecamatan Pusat',
-    date: '24 Okt 2024',
-    description: 'Sebuah lubang besar terbentuk di lajur kanan, menyebabkan kendaraan menghindar secara berbahaya. Tampaknya semakin membesar setelah hujan turun baru-baru ini.',
-    status: 'Sedang Diproses' as const,
-    imageUrl: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=500&auto=format&fit=crop',
-    progress: 50,
-  },
-  {
-    title: 'Lampu Jalan Rusak',
-    location: 'Kecamatan Utara',
-    date: '15 Okt 2024',
-    description: 'Lampu jalan di dekat persimpangan telah padam selama tiga hari, membuat penyeberangan jalan sangat gelap dan berbahaya di malam hari.',
-    status: 'Selesai' as const,
-    imageUrl: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?q=80&w=500&auto=format&fit=crop',
-    progress: 100,
-  },
-];
+import { CreateReportModal } from '@/components/reports/CreateReportModal';
+import { CheckCircle2, ClipboardList, AlertTriangle, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
 
 export default function Home() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    resolved: 0,
+    inProgress: 0,
+    pending: 0
+  });
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/reports?limit=5', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setReports(data.items || []);
+      
+      // Calculate simple stats from items for now
+      // In production, we'd have a specific stats endpoint
+      const items = data.items || [];
+      setStats({
+        resolved: items.filter((r: any) => r.status === 'RESOLVED').length,
+        inProgress: items.filter((r: any) => r.status === 'IN_PROGRESS').length,
+        pending: items.filter((r: any) => r.status === 'PENDING').length
+      });
+    } catch (error) {
+      console.error('Failed to fetch dashboard data', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const statItems = [
+    {
+      label: 'Masalah berhasil diperbaiki',
+      value: stats.resolved,
+      description: 'Masalah berhasil diperbaiki',
+      icon: CheckCircle2,
+      variant: 'success' as const,
+      badgeLabel: 'Selesai',
+    },
+    {
+      label: 'Sedang ditangani',
+      value: stats.inProgress,
+      description: 'Sedang ditangani',
+      icon: ClipboardList,
+      variant: 'warning' as const,
+      badgeLabel: 'Sedang Diproses',
+    },
+    {
+      label: 'Perlu info tambahan',
+      value: stats.pending,
+      description: 'Laporan baru masuk',
+      icon: AlertTriangle,
+      variant: 'danger' as const,
+      badgeLabel: 'Butuh Tindakan',
+    },
+  ];
+
   return (
     <DashboardLayout>
       <div className="py-6 space-y-8 pb-12">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Selamat Datang, Budi</h1>
+            <p className="text-gray-500 text-sm">Berikut ringkasan infrastruktur di wilayah Anda hari ini.</p>
+          </div>
+          <Button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-6 rounded-2xl shadow-lg shadow-primary-200"
+          >
+            <Plus size={20} />
+            Buat Laporan
+          </Button>
+        </div>
+
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {mockStats.map((stat) => (
+          {statItems.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}
         </div>
@@ -66,17 +103,38 @@ export default function Home() {
         <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
           <div className="p-6 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900">Laporan Terbaru</h3>
-            <button className="text-primary-900 text-sm font-semibold hover:underline">
+            <Link href="/reports" className="text-primary-900 text-sm font-semibold hover:underline">
               Lihat Semua
-            </button>
+            </Link>
           </div>
 
           <div className="divide-y divide-gray-50">
-            {mockReports.map((report) => (
-              <ReportCard key={report.title} {...report} />
-            ))}
+            {loading ? (
+              <div className="p-20 text-center text-gray-400">Memuat data...</div>
+            ) : reports.length > 0 ? (
+              reports.map((report: any) => (
+                <ReportCard 
+                  key={report.id} 
+                  title={report.title}
+                  location={report.location}
+                  date={new Date(report.createdAt).toLocaleDateString('id-ID')}
+                  description={report.description}
+                  status={report.status === 'RESOLVED' ? 'Selesai' : report.status === 'IN_PROGRESS' ? 'Sedang Diproses' : 'Butuh Tindakan'}
+                  imageUrl={report.imageUrl ? `http://localhost:3000${report.imageUrl}` : 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=500&auto=format&fit=crop'}
+                  progress={report.status === 'RESOLVED' ? 100 : report.status === 'IN_PROGRESS' ? 50 : 10}
+                />
+              ))
+            ) : (
+              <div className="p-20 text-center text-gray-400">Belum ada laporan terbaru.</div>
+            )}
           </div>
         </section>
+
+        <CreateReportModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSuccess={fetchData}
+        />
       </div>
     </DashboardLayout>
   );
