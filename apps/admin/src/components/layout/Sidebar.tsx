@@ -9,7 +9,8 @@ import {
   FileText, 
   Bell, 
   Settings, 
-  LogOut 
+  LogOut,
+  X
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -20,7 +21,12 @@ const menuItems = [
   { name: 'Pengaturan', icon: Settings, href: '/settings' },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -39,10 +45,21 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-[#F8FAFC] border-r border-gray-200 flex flex-col h-screen sticky top-0">
-      <div className="p-6">
-        <h2 className="text-primary-900 font-bold text-lg">Dashboard Warga</h2>
-        <p className="text-gray-400 text-xs">Pelaporan Resmi</p>
+    <aside className={clsx(
+      "w-64 bg-[#F8FAFC] border-r border-gray-200 flex flex-col h-screen fixed md:sticky top-0 z-50 transition-transform duration-300",
+      isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+    )}>
+      <div className="p-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-primary-900 font-bold text-lg">Dashboard Warga</h2>
+          <p className="text-gray-400 text-xs">Pelaporan Resmi</p>
+        </div>
+        <button 
+          onClick={onClose}
+          className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <nav className="flex-1 px-4 space-y-1 mt-4">
