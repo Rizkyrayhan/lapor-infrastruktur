@@ -118,3 +118,7 @@ dist
 
 # Turbo
 .turbo/
+
+# Uploads
+apps/backend/uploads/*
+!apps/backend/uploads/.gitkeep
