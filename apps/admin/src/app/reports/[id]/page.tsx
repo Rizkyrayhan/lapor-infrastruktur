@@ -46,8 +46,12 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
   };
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) setUser(JSON.parse(storedUser));
     fetchReport();
   }, [id]);
+
+  const isCitizen = user?.role === 'CITIZEN';
 
   const handleUpdateStatus = async () => {
     setUpdating(true);

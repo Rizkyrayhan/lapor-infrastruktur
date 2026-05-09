@@ -19,7 +19,7 @@ export default function Home() {
     pending: 0
   });
 
-  useEffect(() => {
+  const fetchData = async () => {
     const storedUser = localStorage.getItem('user');
     const user = storedUser ? JSON.parse(storedUser) : null;
     const isCitizen = user?.role === 'CITIZEN';
@@ -27,14 +27,12 @@ export default function Home() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        // If citizen, we might want different stats, but for now let's use global or filter
         const response = await fetch('http://localhost:3000/reports', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
         const items = data.items || [];
         
-        // If citizen, filter stats for their own reports
         const filteredItems = isCitizen 
           ? items.filter((r: any) => r.citizenId === user.id)
           : items;
@@ -68,8 +66,11 @@ export default function Home() {
       }
     };
 
-    fetchStats();
-    fetchReports();
+    await Promise.all([fetchStats(), fetchReports()]);
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const statItems = [
