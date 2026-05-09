@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -44,7 +45,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-primary-50 p-6">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-10 border border-primary-100">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary-900">LaporInfrastruktur</h1>
+          <h1 className="text-3xl font-bold text-primary-900">Lapor Infrastruktur</h1>
           <p className="text-gray-500 mt-2 text-sm">Masuk ke Dashboard Admin</p>
         </div>
 
@@ -54,13 +55,13 @@ export default function LoginPage() {
               {error}
             </div>
           )}
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type="email" 
+              <input
+                type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -74,8 +75,8 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Kata Sandi</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-              <input 
-                type="password" 
+              <input
+                type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -85,14 +86,23 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <Button 
-            className="w-full py-4 text-lg font-bold" 
+          <Button
+            className="w-full py-4 text-lg font-bold"
             type="submit"
             disabled={loading}
           >
             {loading ? 'Memproses...' : 'Masuk Sekarang'}
           </Button>
         </form>
+
+        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <p className="text-sm text-gray-600">
+            Belum punya akun warga?{' '}
+            <Link href="/register" className="font-bold text-primary-900 hover:underline">
+              Daftar di sini
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
