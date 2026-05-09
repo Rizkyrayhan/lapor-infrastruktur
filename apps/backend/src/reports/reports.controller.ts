@@ -6,11 +6,14 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Query,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { ReportsService } from './reports.service';
 import { CreateReportDto } from './dto/create-report.dto';
+import { ReportQueryDto } from './dto/report-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { editFileName, imageFileFilter } from '../common/utils/file-upload.utils';
@@ -42,7 +45,12 @@ export class ReportsController {
   }
 
   @Get()
-  findAll() {
-    return this.reportsService.findAll();
+  findAll(@Query() query: ReportQueryDto) {
+    return this.reportsService.findAll(query);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.reportsService.findOne(id);
   }
 }

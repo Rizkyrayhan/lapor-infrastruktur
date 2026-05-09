@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReportDto } from './dto/create-report.dto';
+import { ReportQueryDto } from './dto/report-query.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
@@ -15,8 +17,57 @@ export class ReportsService {
     });
   }
 
-  async findAll() {
-    return this.prisma.report.findMany({
+  async findAll(query: ReportQueryDto) {
+    const { status, category, search, citizenId, page, limit } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ReportWhereInput = {};
+
+    if (status) where.status = status;
+    if (category) where.category = category;
+    if (citizenId) where.citizenId = citizenId;
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.report.findMany({
+        where,
+        include: {
+          citizen: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+      this.prisma.report.count({ where }),
+    ]);
+
+    return {
+      items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async findOne(id: string) {
+    const report = await this.prisma.report.findUnique({
+      where: { id },
       include: {
         citizen: {
           select: {
@@ -26,9 +77,12 @@ export class ReportsService {
           },
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
     });
+
+    if (!report) {
+      throw new NotFoundException(`Report with ID ${id} not found`);
+    }
+
+    return report;
   }
 }
