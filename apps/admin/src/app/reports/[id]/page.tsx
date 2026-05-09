@@ -14,11 +14,12 @@ import {
   Loader2
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { useRouter } from 'next/navigation';
 
-export default function ReportDetailPage({ params }: { params: { id: string } }) {
+export default function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -28,7 +29,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
   const fetchReport = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/reports/${params.id}`, {
+      const response = await fetch(`http://localhost:3000/reports/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Gagal mengambil detail laporan');
@@ -45,13 +46,13 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
 
   useEffect(() => {
     fetchReport();
-  }, [params.id]);
+  }, [id]);
 
   const handleUpdateStatus = async () => {
     setUpdating(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/reports/${params.id}/status`, {
+      const response = await fetch(`http://localhost:3000/reports/${id}/status`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
