@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -11,11 +12,15 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { Role } from '@prisma/client';
 import { ReportsService } from './reports.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { ReportQueryDto } from './dto/report-query.dto';
+import { UpdateReportStatusDto } from './dto/update-report-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { editFileName, imageFileFilter } from '../common/utils/file-upload.utils';
 
 @Controller('reports')
@@ -52,5 +57,15 @@ export class ReportsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.reportsService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.OFFICER)
+  @Patch(':id/status')
+  updateStatus(
+    @Param('id') id: string,
+    @Body() updateReportStatusDto: UpdateReportStatusDto,
+  ) {
+    return this.reportsService.updateStatus(id, updateReportStatusDto);
   }
 }
