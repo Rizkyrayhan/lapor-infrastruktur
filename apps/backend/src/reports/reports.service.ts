@@ -19,7 +19,7 @@ export class ReportsService {
   }
 
   async findAll(query: ReportQueryDto) {
-    const { status, category, search, citizenId, page, limit } = query;
+    const { status, category, search, citizenId, page = 1, limit = 10 } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ReportWhereInput = {};
