@@ -14,7 +14,16 @@ export default function ReportsPage() {
   const fetchReports = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/reports?search=${search}`, {
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const isCitizen = user?.role === 'CITIZEN';
+
+      let url = `http://localhost:3000/reports?search=${search}`;
+      if (isCitizen) {
+        url += `&citizenId=${user.id}`;
+      }
+
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
