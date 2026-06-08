@@ -60,10 +60,18 @@ export function ReportCard({
         <div className="mt-6 flex items-center gap-4">
           <div className="flex items-center gap-1">
             <CheckCircle2 size={16} className="text-green-500" />
-            <div className="w-8 h-[2px] bg-green-500" />
-            <CheckCircle2 size={16} className={progress >= 50 ? 'text-green-500' : 'text-gray-300'} />
+            <div className={clsx('w-8 h-[2px]', progress >= 50 ? 'bg-green-500' : 'bg-gray-200')} />
+            {progress >= 50 ? (
+              <CheckCircle2 size={16} className="text-green-500" />
+            ) : (
+              <Circle size={16} className="text-gray-300" />
+            )}
             <div className={clsx('w-8 h-[2px]', progress >= 100 ? 'bg-green-500' : 'bg-gray-200')} />
-            <Circle size={16} className={progress >= 100 ? 'text-green-500' : 'text-gray-300'} />
+            {progress >= 100 ? (
+              <CheckCircle2 size={16} className="text-green-500" />
+            ) : (
+              <Circle size={16} className="text-gray-300" />
+            )}
           </div>
           <span className="text-xs font-semibold text-gray-600">
             {progress >= 100 ? 'Masalah diperbaiki' : progress >= 50 ? 'Kontraktor Ditugaskan' : 'Diverifikasi'}
