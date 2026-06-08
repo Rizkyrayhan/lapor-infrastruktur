@@ -51,7 +51,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     )}>
       <div className="p-6 flex items-center justify-between">
         <div>
-          <h2 className="text-primary-900 font-bold text-lg">Dashboard Warga</h2>
+          <h2 className="text-primary-900 font-bold text-lg">
+            {user?.role === 'ADMIN' ? 'Dashboard Admin' : user?.role === 'OFFICER' ? 'Dashboard Petugas' : 'Dashboard Warga'}
+          </h2>
           <p className="text-gray-400 text-xs">Pelaporan Resmi</p>
         </div>
         <button 
@@ -65,6 +67,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <nav className="flex-1 px-4 space-y-1 mt-4">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
+          const displayName = item.name === 'Laporan Saya' && user?.role && user.role !== 'CITIZEN' 
+            ? 'Daftar Laporan' 
+            : item.name;
           return (
             <Link
               key={item.name}
@@ -77,7 +82,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               )}
             >
               <item.icon size={18} />
-              {item.name}
+              {displayName}
             </Link>
           );
         })}
