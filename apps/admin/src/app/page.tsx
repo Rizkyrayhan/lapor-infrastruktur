@@ -13,6 +13,7 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({
     resolved: 0,
     inProgress: 0,
@@ -21,8 +22,8 @@ export default function Home() {
 
   const fetchData = async () => {
     const storedUser = localStorage.getItem('user');
-    const user = storedUser ? JSON.parse(storedUser) : null;
-    const isCitizen = user?.role === 'CITIZEN';
+    const currentUser = storedUser ? JSON.parse(storedUser) : null;
+    const isCitizen = currentUser?.role === 'CITIZEN';
 
     const fetchStats = async () => {
       try {
@@ -34,7 +35,7 @@ export default function Home() {
         const items = data.items || [];
         
         const filteredItems = isCitizen 
-          ? items.filter((r: any) => r.citizenId === user.id)
+          ? items.filter((r: any) => r.citizenId === currentUser.id)
           : items;
 
         setStats({
@@ -51,7 +52,7 @@ export default function Home() {
       try {
         const token = localStorage.getItem('token');
         const url = isCitizen 
-          ? `http://localhost:3000/reports?citizenId=${user.id}&limit=5`
+          ? `http://localhost:3000/reports?citizenId=${currentUser.id}&limit=5`
           : 'http://localhost:3000/reports?limit=5';
           
         const response = await fetch(url, {
@@ -70,6 +71,10 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
     fetchData();
   }, []);
 
@@ -106,7 +111,7 @@ export default function Home() {
         {/* Header Actions */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Selamat Datang, Budi</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Selamat Datang, {user?.name || 'User'}</h1>
             <p className="text-gray-500 text-sm">Berikut ringkasan infrastruktur di wilayah Anda hari ini.</p>
           </div>
           <Button 
