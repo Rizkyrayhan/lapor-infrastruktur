@@ -15,6 +15,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dashboardSearch, setDashboardSearch] = useState('');
   const [stats, setStats] = useState({
     resolved: 0,
     inProgress: 0,
@@ -145,18 +146,33 @@ export default function Home() {
 
         {/* Latest Reports Section */}
         <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+          <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h3 className="text-lg font-bold text-gray-900">Laporan Terbaru</h3>
-            <Link href="/reports" className="text-primary-900 text-sm font-semibold hover:underline">
-              Lihat Semua
-            </Link>
+            <div className="flex items-center gap-4">
+              <input
+                type="text"
+                value={dashboardSearch}
+                onChange={(e) => setDashboardSearch(e.target.value)}
+                placeholder="Cari laporan di sini..."
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-black w-full sm:w-48"
+              />
+              <Link href="/reports" className="text-primary-900 text-sm font-semibold hover:underline whitespace-nowrap">
+                Lihat Semua
+              </Link>
+            </div>
           </div>
 
           <div className="divide-y divide-gray-50">
             {loading ? (
               <div className="p-20 text-center text-gray-400">Memuat data...</div>
-            ) : reports.length > 0 ? (
-              reports.map((report: any) => (
+            ) : reports.filter((r: any) => 
+                r.title.toLowerCase().includes(dashboardSearch.toLowerCase()) || 
+                r.description.toLowerCase().includes(dashboardSearch.toLowerCase())
+              ).length > 0 ? (
+              reports.filter((r: any) => 
+                r.title.toLowerCase().includes(dashboardSearch.toLowerCase()) || 
+                r.description.toLowerCase().includes(dashboardSearch.toLowerCase())
+              ).map((report: any) => (
                 <ReportCard 
                   key={report.id} 
                   title={report.title}
@@ -169,7 +185,9 @@ export default function Home() {
                 />
               ))
             ) : (
-              <div className="p-20 text-center text-gray-400">Belum ada laporan terbaru.</div>
+              <div className="p-20 text-center text-gray-400">
+                {reports.length > 0 ? 'Tidak ada laporan yang cocok dengan pencarian.' : 'Belum ada laporan terbaru.'}
+              </div>
             )}
           </div>
         </section>
