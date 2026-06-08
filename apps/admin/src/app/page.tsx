@@ -14,6 +14,7 @@ export default function Home() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState({
     resolved: 0,
     inProgress: 0,
@@ -31,6 +32,7 @@ export default function Home() {
         const response = await fetch('http://localhost:3000/reports', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         const items = data.items || [];
         
@@ -43,8 +45,10 @@ export default function Home() {
           inProgress: filteredItems.filter((r: any) => r.status === 'IN_PROGRESS').length,
           pending: filteredItems.filter((r: any) => r.status === 'PENDING').length,
         });
-      } catch (error) {
-        console.error(error);
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError('Gagal memuat statistik laporan. Pastikan server backend Anda aktif.');
       }
     };
 
@@ -58,10 +62,13 @@ export default function Home() {
         const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
         setReports(data.items || []);
-      } catch (error) {
-        console.error(error);
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError('Gagal memuat daftar laporan terbaru. Pastikan server backend Anda aktif.');
       } finally {
         setLoading(false);
       }
@@ -108,6 +115,12 @@ export default function Home() {
   return (
     <DashboardLayout>
       <div className="py-6 space-y-8 pb-12">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2 text-sm">
+            <AlertTriangle className="flex-shrink-0 text-red-500" size={18} />
+            <span>{error}</span>
+          </div>
+        )}
         {/* Header Actions */}
         <div className="flex items-center justify-between">
           <div>
