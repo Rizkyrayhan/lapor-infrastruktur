@@ -126,7 +126,7 @@ export default function Home() {
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {statItems.map((stat) => (
-            <StatCard key={stat.label} {...stat} />
+            <StatCard key={stat.label} {...stat} loading={loading} />
           ))}
         </div>
 

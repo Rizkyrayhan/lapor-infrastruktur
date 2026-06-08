@@ -3,20 +3,22 @@ import { clsx } from 'clsx';
 
 interface StatCardProps {
   label: string;
-  value: number;
+  value?: number;
   description: string;
   icon: LucideIcon;
   variant: 'success' | 'warning' | 'danger';
   badgeLabel: string;
+  loading?: boolean;
 }
 
 export function StatCard({ 
   label, 
-  value, 
+  value = 0, 
   description, 
   icon: Icon, 
   variant, 
-  badgeLabel 
+  badgeLabel,
+  loading = false
 }: StatCardProps) {
   const variants = {
     success: {
@@ -38,6 +40,21 @@ export function StatCard({
       badge: 'bg-[#FFEBEE] text-red-700',
     },
   };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 flex flex-col min-h-[180px] justify-between shadow-sm animate-pulse">
+        <div className="flex items-start justify-between">
+          <div className="w-12 h-12 bg-gray-100 rounded-xl" />
+          <div className="w-20 h-6 bg-gray-100 rounded-md" />
+        </div>
+        <div className="mt-4 space-y-2">
+          <div className="h-8 bg-gray-100 rounded w-16" />
+          <div className="h-4 bg-gray-100 rounded w-32" />
+        </div>
+      </div>
+    );
+  }
 
   const style = variants[variant];
 
