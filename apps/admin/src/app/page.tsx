@@ -8,6 +8,7 @@ import { CheckCircle2, ClipboardList, AlertTriangle, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import { clsx } from 'clsx';
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,6 +17,7 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [dashboardSearch, setDashboardSearch] = useState('');
+  const [animate, setAnimate] = useState(false);
   const [stats, setStats] = useState({
     resolved: 0,
     inProgress: 0,
@@ -84,6 +86,8 @@ export default function Home() {
       setUser(JSON.parse(storedUser));
     }
     fetchData();
+    const frame = requestAnimationFrame(() => setAnimate(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const statItems = [
@@ -115,7 +119,7 @@ export default function Home() {
 
   return (
     <DashboardLayout>
-      <div className="py-6 space-y-8 pb-12">
+      <div className={clsx("py-6 space-y-8 pb-12 transition-all duration-700 ease-out transform", animate ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2 text-sm">
             <AlertTriangle className="flex-shrink-0 text-red-500" size={18} />
