@@ -8,9 +8,11 @@
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "dev:all": "concurrently -n \"admin,backend,mobile\" -c \"blue,green,magenta\" \"npm run dev --workspace=@lapor-infrastruktur/admin\" \"npm run start:dev --workspace=@lapor-infrastruktur/backend\" \"npm run start --workspace=@lapor-infrastruktur/mobile\""
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "prettier": "^3.2.5",
     "puppeteer": "^25.1.0"
   }
