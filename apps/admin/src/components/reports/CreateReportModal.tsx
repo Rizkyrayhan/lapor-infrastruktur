@@ -54,12 +54,28 @@ export function CreateReportModal({ isOpen, onClose, onSuccess }: CreateReportMo
     setLoading(true);
     setError('');
 
+    if (title.trim().length < 5) {
+      setError('Judul laporan minimal harus terdiri dari 5 karakter.');
+      setLoading(false);
+      return;
+    }
+    if (description.trim().length < 10) {
+      setError('Deskripsi masalah minimal harus terdiri dari 10 karakter.');
+      setLoading(false);
+      return;
+    }
+    if (location.trim().length < 3) {
+      setError('Nama lokasi minimal harus terdiri dari 3 karakter.');
+      setLoading(false);
+      return;
+    }
+
     const token = localStorage.getItem('token');
     const formData = new FormData();
-    formData.append('title', title);
-    formData.append('description', description);
+    formData.append('title', title.trim());
+    formData.append('description', description.trim());
     formData.append('category', category);
-    formData.append('location', location);
+    formData.append('location', location.trim());
     if (latitude) formData.append('latitude', latitude.toString());
     if (longitude) formData.append('longitude', longitude.toString());
     if (image) {
