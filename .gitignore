@@ -122,3 +122,18 @@ dist
 # Uploads
 apps/backend/uploads/*
 !apps/backend/uploads/.gitkeep
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Local Database & Prisma
+prisma/*.db
+prisma/*.db-journal
+*.sqlite
+
