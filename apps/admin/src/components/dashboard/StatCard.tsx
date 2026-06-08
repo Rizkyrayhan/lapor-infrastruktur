@@ -1,4 +1,4 @@
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, HelpCircle } from 'lucide-react';
 import { clsx } from 'clsx';
 
 interface StatCardProps {
@@ -59,19 +59,22 @@ export function StatCard({
   const style = variants[variant];
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-gray-100 flex flex-col min-h-[180px] justify-between shadow-sm">
+    <div className="bg-white rounded-2xl p-6 border border-gray-100 flex flex-col min-h-[180px] justify-between shadow-sm" title={description}>
       <div className="flex items-start justify-between">
         <div className={clsx('p-3 rounded-xl', style.iconBg)}>
           <Icon className={style.iconColor} size={24} />
         </div>
-        <span className={clsx('px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider', style.badge)}>
-          {badgeLabel}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className={clsx('px-3 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider', style.badge)}>
+            {badgeLabel}
+          </span>
+          <HelpCircle size={14} className="text-gray-300 hover:text-gray-500 cursor-help transition-colors" />
+        </div>
       </div>
 
       <div className="mt-4">
         <h3 className="text-4xl font-bold text-gray-900">{value}</h3>
-        <p className="text-gray-500 text-sm mt-1">{description}</p>
+        <p className="text-gray-500 text-sm mt-1">{label}</p>
       </div>
     </div>
   );

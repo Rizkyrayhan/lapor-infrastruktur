@@ -90,7 +90,7 @@ export default function Home() {
     {
       label: 'Masalah berhasil diperbaiki',
       value: stats.resolved,
-      description: 'Masalah berhasil diperbaiki',
+      description: 'Laporan infrastruktur yang telah selesai diperbaiki sepenuhnya.',
       icon: CheckCircle2,
       variant: 'success' as const,
       badgeLabel: 'Selesai',
@@ -98,7 +98,7 @@ export default function Home() {
     {
       label: 'Sedang ditangani',
       value: stats.inProgress,
-      description: 'Sedang ditangani',
+      description: 'Laporan infrastruktur yang sedang dalam pengerjaan oleh kontraktor/petugas.',
       icon: ClipboardList,
       variant: 'warning' as const,
       badgeLabel: 'Sedang Diproses',
@@ -106,7 +106,7 @@ export default function Home() {
     {
       label: 'Perlu info tambahan',
       value: stats.pending,
-      description: 'Laporan baru masuk',
+      description: 'Laporan baru masuk atau butuh tindakan verifikasi cepat.',
       icon: AlertTriangle,
       variant: 'danger' as const,
       badgeLabel: 'Butuh Tindakan',
